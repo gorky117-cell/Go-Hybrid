@@ -3,9 +3,11 @@
 Each case copies the files the script reads into a temporary tree, applies
 one edit, and runs the real script with --no-toolchain.
 """
+import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -22,23 +24,27 @@ FILES = (
 
 class CheckVersionsTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hybrid-check-versions-")
+        kwargs = {"prefix": "hybrid-check-versions-"}
+        if sys.version_info >= (3, 10):
+            kwargs["ignore_cleanup_errors"] = True
+        temporary = tempfile.TemporaryDirectory(**kwargs)
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         for name in FILES:
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(ROOT / name, target)
+            content = (ROOT / name).read_bytes().replace(b"\r\n", b"\n")
+            target.write_bytes(content)
 
     def edit(self, name, old, new):
         path = self.root / name
         text = path.read_text(encoding="utf-8")
         self.assertIn(old, text, f"fixture text missing from {name}")
-        path.write_text(text.replace(old, new), encoding="utf-8")
+        path.write_bytes(text.replace(old, new).encode("utf-8"))
 
     def run_check(self):
         return subprocess.run(
-            ["bash", str(self.root / "tools/check-versions.sh"), "--no-toolchain"],
+            ["bash", "tools/check-versions.sh", "--no-toolchain"],
             cwd=self.root, capture_output=True, text=True, timeout=30, check=False,
         )
 
@@ -111,22 +117,27 @@ class CheckVersionsTests(unittest.TestCase):
             ("rustc", "rustc 1.99.0 (fixture)", rust_exit),
         ):
             executable = bindir / name
-            executable.write_text(
-                "#!/bin/sh\n"
-                + ("" if silent else "printf '%s\\n' '" + output + "'\n")
-                + "exit " + str(status) + "\n", encoding="utf-8"
+            executable.write_bytes(
+                (
+                    "#!/bin/sh\n"
+                    + ("" if silent else "printf '%s\\n' '" + output + "'\n")
+                    + "exit " + str(status) + "\n"
+                ).encode("utf-8")
             )
             executable.chmod(0o755)
-        shutil.copy2(ROOT / "tools/env.sh", self.root / "tools/env.sh")
+        env_content = (ROOT / "tools/env.sh").read_bytes().replace(b"\r\n", b"\n")
+        (self.root / "tools/env.sh").write_bytes(env_content)
         with (self.root / "tools/env.sh").open("a", encoding="utf-8") as env:
-            env.write('\nexport PATH="' + str(bindir) + ':/usr/bin:/bin:/usr/sbin:/sbin"\n')
-        command = ["/bin/bash", str(self.root / "tools/check-versions.sh")]
+            env.write('\nexport PATH="$PWD/fixture-bin:$PATH"\n')
+        command = ["bash", "tools/check-versions.sh"]
         if skip:
             command.append("--no-toolchain")
+        test_env = {**os.environ, "HOME": str(self.root), "TMPDIR": str(self.root), "LC_ALL": "C"}
+        if os.name != "nt":
+            test_env["PATH"] = "/usr/bin:/bin"
         return subprocess.run(command, cwd=self.root, capture_output=True,
                               text=True, timeout=30, check=False,
-                              env={"PATH": "/usr/bin:/bin", "HOME": str(self.root),
-                                   "TMPDIR": str(self.root), "LC_ALL": "C"})
+                              env=test_env)
 
     def test_matching_toolchain_probes_succeed(self):
         result = self.toolchain_check()
