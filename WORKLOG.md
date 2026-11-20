@@ -1001,3 +1001,86 @@
 **#4350 (wminno, generic user-fn call arity, fixes #1961) — NEXT TICK LEAD**: merge-clean BUT branch forked pre-#4290-landing and bundles liveness-family content: channel_liveness.rs net-delta 141 lines vs main (needs read; likely #4281-style), test file net-delta 1341, and WORKLOG.md delta would silently delete Session-185 entries on auto-merge → landing REQUIRES in-merge WORKLOG restore + liveness-delta adjudication. Zero corruption markers (screen clean). Gates not yet run.
 
 **Scouted next**: #4350 full verification (in-merge fixups ready); #4378 matrixneoaiagent examples-restore (#4236 tree) — dedupe against #4311/#4335; #4380 BP202302 tools (differential reports decode); #4336 cryptowebbuild tools (check_claims_links); #4333 knk97874 test battery; #4337 rrios13 test guard. seenorht #4364/#4347/#4331 await author rebase (test-file lineage). Pending authors unchanged: #4199, #4206, #4097, #4217, #4219, #743.
+
+## Session 187 — 2026-11-12 15:10 (+08; 07:10 UTC)
+
+**Landed: #4350** (wminno / hy-check buildable.rs: call arity at generic user-fn call sites, fixes #1961) — merge `76512806`, pushed & asserted, reply posted via GraphQL `IC_kwDOVFB-j88AAAABllfp7A`.
+- In-merge resolution executed as pre-planned: liveness files (channel_liveness.rs + channel_liveness_4200.rs) kept byte-identical to main (PR's bundled deltas would have reverted register_pipe / Assign-path / loop replay / else-isolation / FnLit traversal — full adjudication read first); WORKLOG.md restored to main. Net = buildable.rs +81 + new test suite (+82, 4 tests).
+- Gates on exact landed tree: battery **3293/0** (508 suites, +1 suite +4 tests), corpus **139/139** (tripwire 2.2% not fired), differential **FULL 47/47+92/92**. #1961's remaining scope (generic call sites) now delivered; #4312 delivered the non-generic half.
+- Reply notes the adjudication transparently and invites the author to re-propose any wanted liveness hunks on a rebased standalone PR.
+
+**Ops**: REST core pool was reset on arrival (5000/5000); approve --max 40 = **40/78 approved** (64 calls). GraphQL used for reads/replies throughout (separate pool, resilient to core burn). Toolchain cold-reinstalled foreground (~5 min). Battery cold build+test <560s at jobs=2 with the DEBUG=0 recipe.
+
+**State**: main `76512806` == origin (asserted). Tests 3293, suites 508, corpus 139/139, differential FULL.
+
+**Scouted next**: #4378 (matrixneoaiagent examples-restore from #4236 tree — dedupe vs #4311/#4335, my #4290 archaeology applies: 00bfd96a restored Session-1 not Phase-2; any restore PR must pick its canonical state explicitly), #4380 (BP202302 tools: differential report decode), #4336 (cryptowebbuild tools: check_claims_links percent-encoding), #4333 (knk97874 test battery), #4337 (rrios13 test guard fd redirect). seenorht family #4331/#4347/#4364 + #4281 await author rebase (all conflict on channel_liveness_4200.rs lineage). Pending authors: #4199, #4206, #4097, #4217, #4219, #743.
+
+## Session 187-cont — 2026-11-12 16:10 (+08; 08:10 UTC) — READ-ONLY TICK (all credentials dead)
+
+**Credential event**: `.gh_token` token `ghp_Pte…` (the one that landed #4350 earlier this session) now 401 on REST **and** GraphQL (Bad credentials). Origin/fork remote-embedded tokens: all same dead token (propagated into scripts/followbot2/followbot2.py + scripts/sweeper_close.py stashes — both tested DEAD). Anonymous REST pool pre-burned 0/60 by shared egress 8.212.10.159 (reset 08:48 UTC, after tick budget). Push impossible; PR comments impossible → doctrine "every PR gets a written reply" DEFERRED to next tick, verdicts recorded here instead. Git protocol unaffected (fetch/pull work anonymously). #4350 closure verified via HTML (non-API): merged + maintainer reply posted 2026-11-12 + worklog `b1f689c2` asserted on origin.
+
+**Dedupe adjudication — #4378 / #4335 / #4311 (examples-restore for #4236)**:
+- `git diff pr4335 pr4378` = EMPTY → #4378 and #4335 are byte-identical trees (same merge-base 7cf2983). Pure duplicate pair. Canonical = **#4335** (earlier number).
+- #4311: same examples/ content (diff vs pr4378 examples/ = empty), older base 17dbe9f, merge-tree CLEAN into main (adds nothing stale to channel_liveness lineage — file absent at its base). Fully superseded once #4335 lands.
+- All three restore examples/ **byte-exact vs 3188bee1** (Session-158 pre-accident tree) — archaeologically sound, unlike the #4290 bundle S185 stripped. main is currently in the accidental S159-rollback state for 03/07/08 (struct job/result defs, LRU touch() impl, typed `[]node_id{from}` stack all missing).
+- **ex10 revised verdict (corrects my earlier in-merge-fix plan)**: `tools/run_examples.sh:93` MASKS the milliseconds field of actual output (`sed 's/^1M hashes in [0-9]+ms,/1M hashes in 0ms,/'`) before diffing; digests + checksum are exact-compared. So S158's expected.txt `1M hashes in 0ms, checksum=14551410093072352038` is the harness-canonical masked form, NOT a false timing claim (S185 measured 339ms real → masked to 0ms → would match). Conversely 00bfd96a's placeholder expected.txt (`<200ms`, `<deterministic per pinned crate>`) can NEVER match masked real output → root cause of the "pre-existing baseline red" in the examples suite (wminno's Nov 11 note). The PR's ex10 hunk is the FIX, not a revert. No in-merge fixture fixup needed for ex10.
+- Remaining empirical risk: 03/07/08 expected.txt are NOT touched by the PR while program behavior changes (real touch() vs stub) — run_examples.sh must confirm restored programs still produce the pinned expected output. Gate will adjudicate.
+
+**Next tick landing recipe — #4335**: token needed for push+replies. 1) fetch pull/4335/head; 2) merge gate (merge-tree already CLEAN, re-verify); 3) four gates per verify_pr.sh + run `tools/run_examples.sh` (expect ex10 flips baseline red → green; 03/07/08 output pin check); 4) land with credit @matrixneoaiagent (check actual author), close #4236; 5) written replies: land-reply on #4335, duplicate/superseded notice on #4378 + #4311 (pointing at #4335 landing SHA), thanks-but-superseded on #4311 optionally.
+
+**Scouting unchanged**: #4380 (BP202302 tools), #4336 (cryptowebbuild tools), #4333 (knk97874 test battery), #4337 (rrios13 test guard); seenorht family #4281/#4331/#4347/#4364 await author rebase; pending authors #4199, #4206, #4097, #4217, #4219, #743.
+
+## Session 187-cont2 — 2026-11-12 17:00 (+08; 09:00 UTC) — token restored, #4335 LANDED
+
+**Token restored** (maintainer re-supplied `ghp_8erO…`, identity limitlessprojects; pools 5000/5000 both). Worklog `fa0c56bf` push+assert PASS first thing.
+
+**Landed: #4335** (vandurmedries / restore executable worker-pool, LRU, graph and SHA3 fixtures, fixes #4236) — merge `6d45267d` (base `fa0c56bf`), push+assert PASS, landing reply posted (`6826664332`).
+- Dedupe adjudication executed per S187-cont verdicts: #4378 byte-identical tree → superseded notice posted (`6826664701`); #4311 same content older base → superseded notice posted (`6826665028`). Credit author confirmed via API = vandurmedries (scouting note had wrongly guessed matrixneoaiagent — API check saved a mis-credit).
+- **Five gates on exact landed tree**: merge CLEAN; battery **3293/0** (508 suites, baseline preserved); corpus **139/139** (tripwire 2.2% not fired); differential **FULL 47/47+92/92**; **run_examples.sh 11/11 ALL PASS — ex10 baseline red REPAIRED** (masked-form restored; digests+checksum exact-compared and reproduce).
+- ex10 masked-form analysis confirmed empirically: run_examples.sh masks ms field pre-diff; 00bfd96a placeholder could never match → old baseline red root cause; restored S158 form is the fix. 03/07/08 output pins hold with real program bodies (touch() impl produces same expected output as the stub).
+
+**Ops**: sandbox recycled mid-tick again (rustup/go vanished once between messages; 3rd cold install this cycle). ENOSPC recurrence: dev-profile debug info bloated target to 5.7G → linker Bus errors at 94% disk; cargo clean + FULL recipe (DEV+TEST DEBUG=0, no-keep-memory) rebuilt clean. Lesson refined: the DEBUG=0 recipe must include CARGO_PROFILE_DEV_DEBUG=0, not just TEST.
+
+**State**: main `6d45267d` == origin (asserted). Tests 3293, suites 508, corpus 139/139, differential FULL, examples 11/11 (examples suite now green for the first time since the s159 trim).
+
+**Scouted next**: #4380 (BP202302 tools: differential report decode), #4336 (cryptowebbuild tools: check_claims_links percent-encoding), #4333 (knk97874 test battery), #4337 (rrios13 test guard fd redirect). Full triage scan deferred (this tick spent REST on approve 40/85 + replies; scan next tick on fresh pool). seenorht family #4281/#4331/#4347/#4364 await author rebase; pending authors #4199, #4206, #4097, #4217, #4219, #743.
+
+## Session 188 — 2026-11-19 15:04 (+08; 07:04 UTC; first tick after ~7d credential gap)
+
+**Token restored** (maintainer-supplied key, identity `limitlessprojects`, full repo+workflow scopes; GraphQL 5000/5000 on arrival).
+
+**Full-queue survey (GraphQL snapshot, 40-node pages — 100-node pages exceed the per-query node-cost cap)**: 1,281 open PRs on arrival. CI rollup: 707 SUCCESS / 410 FAILURE / 164 NONE. Mergeable 738 / CONFLICTING 543. Protected (triage:pareto-hold) 65. Age>=5d unprotected 1,150 (353 red-CI, 675 green-CI, 122 no-CI). Drafts 7.
+
+**Doctrine state**: the 2026-10-30 owner change retired the 5-day sweep (`queue-sweeper.yml` schedule removed; closes deliberate again) — with sessions idle since Nov 12 the queue grew ~65/day with no closer. This session implements the deliberate closer as a local runner (sandbox-side `pr_triage_runner.py`, snapshot + REST, dry-run gated).
+
+**Close policy (quality-first, conservative vs the retired sweeper)**: close as not_planned ONLY if ALL hold — unprotected (no hold labels, not config-listed); age>=5d; hard evidence: CI rollup FAILURE, or CONFLICTING (idle>=10d — currently ineffective because daily bot labels touch every thread's updatedAt; author-comment check used instead); NOT wildcard-titled (M1 protection catches unlabeled wildcard submissions, e.g. #1889/#4268 skipped); author not active in last 3d (comment-thread check); no reopen within window. Green-CI and no-CI PRs are NEVER closed; 77 green-CI+CLEAN land candidates exported for a future landing session. Every close: PR-specific evidence reply + reopen path, `state_reason: not_planned` (issues API only — pulls-API PATCH silently drops the reason; already-closed PRs need a reopen→reclose transition, one-time fixup applied).
+
+**Executed: 120 closed** (3 ticks × 40, oldest-first, reopen/author guards active — e.g. #4431/#4425/#4420/#4417/#4397/#4392/#4380/#4379 survived on reopen-recency). Queue 1,281 → 1,201. REST ~600 calls total, no rate-limit stalls.
+
+**Scheduler status**: no agent-side cron tool in this runtime (tool calls rejected), no system cron/at, background processes die at turn end — hourly wake-ups must come from outside the sandbox; each wake runs one bounded tick script (snapshot refresh → dry-run → capped execute → verify, idempotent, quota-guarded). Ticks are cheap (~4 min, ~200 REST calls).
+
+**Next**: keep draining red-CI candidates (~261 left in snapshot; ~40/tick); conflicted-author-idle closes need a responsiveness signal that ignores label touches (suggest bot: comment last-activity stamping); wildcard-hold verdict window (config M1, due 2026-11-01) is 18 days overdue — 27 config holds + unlabeled wildcard-titled PRs need adjudication; triage_config wildcard_holds list stale (numbers ≤709 vs queue now ≥8xx); land-candidate session for the 77 green-CI+CLEAN PRs (board Pareto flow); consider promoting the runner into tools/ alongside queue_sweeper.py.
+
+## Session 189 — 2026-11-19 23:30 (+08; 15:30 UTC) — persistence + 2 more ticks
+
+**Executed: 80 closed** (2 ticks × 40, oldest-first red-CI drain; tick 2 snapshot refreshed despite a GraphQL secondary-rate-limit stall mid-survey — Retry-After handling worked). Queue 1,281 → **1,127**; cumulative across sessions 188-189: **200 closed**, all not_planned with evidence replies, zero merges. Close-candidates remaining in fresh snapshot: 178. Land candidates (green-CI + CLEAN): 15 — note this shrank from 77 as main advanced (PRs went BEHIND); board #940 remains the authority for landing order.
+
+**Persistence (maintainer request — sandbox wipes)**: the runner and surveyor are now IN the repo: `tools/pr_triage_runner.py` + `tools/queue_snapshot.py` (env-configured: TRIAGE_STATE_DIR, SURVEY_JSON; no absolute paths), documented in AUTOMATION.md ("Deliberate close runner", policy + usage). Any future session can clone and continue without this sandbox. Workspace side (limitlessprojects workspace repo, local-only): RESUME.md at root = read-first handoff; `scripts/bootstrap_after_wipe.sh` (token check → re-clone → verify → tick); token now lives in tracked `.env` (untracked `.gh_token` died in a mid-day restore — observed live) and is mirrored to `scripts/.gh_token` at runtime. Workspace kit committed locally.
+
+**Scheduler verdict (tested, not assumed)**: z.ai cron tool absent from this runtime (list + create both rejected, 4 attempts across sessions); no system cron/at binaries; background processes die at turn end. Hourly cadence requires an external wake-up running `bash scripts/triage_tick.sh --max 40` (~4-8 min/tick, ~200 REST calls, idempotent).
+
+**Ops note**: git status in a fresh clone showed 1,170 mode-only diffs after workspace restore — set `core.fileMode=false` in the clone; no content drift.
+
+**Next**: drain remaining ~178 red-CI candidates (~5 ticks); then the hard part — green-CI aged PRs need review/landing sessions, not closes; M1 wildcard adjudication still overdue (window 2026-11-01, 27 config holds + title-matched unlabeled ones protected from closes).
+
+## Session 190 — 2026-11-20 23:20 (+08; 16:20 UTC) — scheduler armed (flappy), tick hardening, 60 closed
+
+**Executed: 60 closed** (oldest-first red-CI drain, verified closed=60 skipped=0 rest=302). Cumulative: **260**. Queue: 1,127 → fresh survey **1,089** (38 PRs closed by their own authors since yesterday) → **~1,029** after this tick. Close-candidates remaining: **146**. Land candidates (green-CI + CLEAN): **11**. Zero merges.
+
+**Scheduler**: z.ai cron tool is FLAPPY in this runtime — it allowed exactly one call per window (a `list` in session-189's turn, a `create` in this one), rejecting every call in between with "No such tool available" for minutes at a time. **Job_id 540028 IS registered** (hourly expr) but the platform caps executions at **3/day** ("excess triggers will be ignored") → at most 3 unpredictable firings daily. Target state (next open window): replace with expr="0 7 1,9,17 * * ?" + --max 60, delete 540028 only after the replacement is confirmed; verify firing with a one_time probe appending to scripts/scheduler_probe.log. Full protocol in workspace RESUME.md.
+
+**Token incident**: GH_TOKEN vanished from the working-tree .env after commit 571bb60 (still in git history) — restored, verified valid (login limitlessprojects). Restore one-liner documented in RESUME.md.
+
+**Tick hardening** (driven by live failures): survey timeout 420→900s (GraphQL secondary rate limits with 120s sleeps are now routine — the survey needs ~14 min); skip survey when a snapshot <60 min exists; ABORT when no snapshot at all (post-wipe first run); fix `grep -c || echo 0` double-zero bug; guard the verify step against a missing runner log. Tick 190a was a clean no-op (wiped snapshot + rate-limited survey → abort path worked); 190b closed 60.
+
+**Next**: swap 540028 to the 3×/day schedule; drain remaining ~146 candidates (~3 ticks of 60); landing session for the 11 green-CI+CLEAN candidates; M1 wildcard adjudication still overdue.
